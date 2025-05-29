@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { LogOut, User, Bell, Search, HelpCircle, Settings } from 'lucide-react';
 import { useNotifications } from '@/contexts/NotificationContext';
+import BackButton from '@/components/ui/back-button';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -27,6 +28,7 @@ const Navbar: React.FC = () => {
     <nav className="bg-white/10 backdrop-blur-md border-b border-white/20 px-6 py-4">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <div className="flex items-center space-x-4">
+          <BackButton />
           <h1 className="text-2xl font-bold text-white">Agent Manager</h1>
           
           {user && (
