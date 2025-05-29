@@ -2,25 +2,56 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/7f124061-ffeb-4e33-94e7-89b5e7903f38
+# MERN Stack Machine Test Application
 
-## How can I edit this code?
+## 📌 Project Overview
 
-There are several ways of editing your application.
+This project is a basic MERN stack application built for a machine test. It includes the following features:
 
-**Use Lovable**
+1. 🔐 **Admin User Login with JWT Authentication**
+2. 👤 **Agent Creation and Management**
+3. 📤 **CSV Upload and Task Distribution among Agents**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/7f124061-ffeb-4e33-94e7-89b5e7903f38) and start prompting.
+## 🛠️ Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend**: React.js
+- **Backend**: Node.js, Express.js
+- **Database**: MongoDB
+- **Authentication**: JSON Web Token (JWT)
+- **File Upload**: Multer
+- **CSV Parsing**: `csv-parser`, `xlsx`
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🚀 Features
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 1. Admin User Login
+- Secure login using Email and Password
+- Authenticated using JWT
+- Redirects to dashboard upon successful login
 
-Follow these steps:
+### 2. Add Agents
+- Add agents with Name, Email, Mobile Number (with country code), and Password
+- Stores agent data in MongoDB
+- Passwords are hashed for security
+
+### 3. Upload CSV & Distribute Tasks
+- Upload `.csv`, `.xlsx`, or `.xls` files
+- Validates the format and content of the file
+- Parses and distributes items equally among 5 agents
+- Saves distributed tasks in MongoDB
+- View each agent’s assigned tasks from the frontend
+
+---
+
+## 🧾 Installation Guide
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/mern-machine-test.git
+cd mern-machine-test
+
 
 ```sh
 # Step 1: Clone the repository using the project's Git URL.
