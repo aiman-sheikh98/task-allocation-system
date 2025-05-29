@@ -1,12 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, User, Mail, Phone, Edit, X } from 'lucide-react';
+import { Plus, User, Mail, Phone, Edit, X, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 interface Agent {
   id: string;
@@ -26,6 +27,7 @@ const AgentManagement: React.FC = () => {
   ]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -34,6 +36,19 @@ const AgentManagement: React.FC = () => {
     password: ''
   });
 
+  const { addNotification } = useNotifications();
+
+  // Filter agents based on search query
+  const filteredAgents = useMemo(() => {
+    if (!searchQuery.trim()) return agents;
+    
+    return agents.filter(agent =>
+      agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      agent.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      agent.mobile.includes(searchQuery)
+    );
+  }, [agents, searchQuery]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -41,6 +56,27 @@ const AgentManagement: React.FC = () => {
       toast({
         title: "Validation Error",
         description: "Please fill in all fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid email address",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check for duplicate email
+    if (agents.some(agent => agent.email === formData.email)) {
+      toast({
+        title: "Validation Error",
+        description: "An agent with this email already exists",
         variant: "destructive"
       });
       return;
@@ -58,6 +94,13 @@ const AgentManagement: React.FC = () => {
     setFormData({ name: '', email: '', mobile: '', countryCode: '+1', password: '' });
     setIsDialogOpen(false);
     
+    // Add real-time notification
+    addNotification({
+      title: "New Agent Added",
+      message: `${formData.name} has been successfully added to your team`,
+      type: "success"
+    });
+    
     toast({
       title: "Agent Added",
       description: "New agent has been successfully added",
@@ -65,7 +108,17 @@ const AgentManagement: React.FC = () => {
   };
 
   const handleRemoveAgent = (id: string) => {
+    const agent = agents.find(a => a.id === id);
     setAgents(agents.filter(agent => agent.id !== id));
+    
+    if (agent) {
+      addNotification({
+        title: "Agent Removed",
+        message: `${agent.name} has been removed from your team`,
+        type: "info"
+      });
+    }
+    
     toast({
       title: "Agent Removed",
       description: "Agent has been successfully removed",
@@ -98,18 +151,19 @@ const AgentManagement: React.FC = () => {
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">Full Name *</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Enter full name"
                   className="bg-gray-800 border-gray-700 text-white"
+                  required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -117,6 +171,7 @@ const AgentManagement: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="Enter email address"
                   className="bg-gray-800 border-gray-700 text-white"
+                  required
                 />
               </div>
               
@@ -132,19 +187,20 @@ const AgentManagement: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2 col-span-2">
-                  <Label htmlFor="mobile">Mobile Number</Label>
+                  <Label htmlFor="mobile">Mobile Number *</Label>
                   <Input
                     id="mobile"
                     value={formData.mobile}
                     onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                     placeholder="Enter mobile number"
                     className="bg-gray-800 border-gray-700 text-white"
+                    required
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Password *</Label>
                 <Input
                   id="password"
                   type="password"
@@ -152,6 +208,7 @@ const AgentManagement: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="Enter password"
                   className="bg-gray-800 border-gray-700 text-white"
+                  required
                 />
               </div>
               
@@ -168,8 +225,25 @@ const AgentManagement: React.FC = () => {
         </Dialog>
       </div>
 
+      {/* Search Bar */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 w-4 h-4" />
+        <Input
+          type="text"
+          placeholder="Search agents by name, email, or mobile..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
+        />
+      </div>
+
+      {/* Results count */}
+      <div className="text-white/70 text-sm">
+        Showing {filteredAgents.length} of {agents.length} agents
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {agents.map((agent) => (
+        {filteredAgents.map((agent) => (
           <Card key={agent.id} className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 transition-all duration-200 animate-fade-in hover-scale">
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
@@ -205,6 +279,12 @@ const AgentManagement: React.FC = () => {
           </Card>
         ))}
       </div>
+
+      {filteredAgents.length === 0 && searchQuery && (
+        <div className="text-center py-8">
+          <p className="text-white/70">No agents found matching "{searchQuery}"</p>
+        </div>
+      )}
     </div>
   );
 };
